@@ -826,24 +826,28 @@ public class Commands implements CommandExecutor, TabCompleter {
                             try {
                                 if (imageMap instanceof URLImageMap) {
                                     URLImageMap urlImageMap = (URLImageMap) imageMap;
-                                    String imageType = HTTPRequestUtils.getContentType(url);
-                                    if (imageType == null) {
-                                        imageType = URLConnection.guessContentTypeFromName(url);
-                                    }
-                                    if (imageType == null) {
-                                        imageType = "";
-                                    } else {
-                                        imageType = imageType.trim();
-                                    }
-                                    if (!ImageFrame.isURLAllowed(url)) {
-                                        sendMessage(sender, translatable(URL_RESTRICTED).color(NamedTextColor.RED));
-                                        return;
-                                    }
-                                    if (imageType.equals(MapUtils.GIF_CONTENT_TYPE) == urlImageMap.requiresAnimationService()) {
-                                        String oldUrl = urlImageMap.getUrl();
-                                        if (url != null) {
-                                            urlImageMap.setUrl(url);
+                                    if (url != null) {
+                                        String imageType = HTTPRequestUtils.getContentType(url);
+                                        if (imageType == null) {
+                                            imageType = URLConnection.guessContentTypeFromName(url);
                                         }
+                                        if (imageType == null) {
+                                            imageType = "";
+                                        } else {
+                                            imageType = imageType.trim();
+                                        }
+                                        if (!ImageFrame.isURLAllowed(url)) {
+                                            sendMessage(sender, translatable(URL_RESTRICTED).color(NamedTextColor.RED));
+                                            return;
+                                        }
+                                        if (imageType.equals(MapUtils.GIF_CONTENT_TYPE) != urlImageMap.requiresAnimationService()) {
+                                            sendMessage(sender, translatable(UNABLE_TO_CHANGE_IMAGE_TYPE).color(NamedTextColor.RED));
+                                            return;
+                                        }
+                                    }
+                                    String oldUrl = urlImageMap.getUrl();
+                                    if (url != null) {
+                                        urlImageMap.setUrl(url);
                                         if (ImageFrame.imageUploadManager.isOperational() && urlImageMap.getUrl().equalsIgnoreCase("upload")) {
                                             PendingUpload pendingUpload = ImageFrame.imageUploadManager.newPendingUpload(urlImageMap.getCreator(), urlImageMap.getCreatorName(), urlImageMap.getName(), urlImageMap.getWidth(), urlImageMap.getHeight());
                                             String uploadUrl = pendingUpload.getUrl(ImageFrame.uploadServiceDisplayURL);
@@ -855,19 +859,17 @@ public class Commands implements CommandExecutor, TabCompleter {
                                             }
                                             urlImageMap.setUrl(newUrl);
                                         }
-                                        if (ditheringType != null) {
-                                            urlImageMap.setDitheringType(ditheringType);
-                                        }
-                                        try {
-                                            imageMap.update();
-                                            sendMessage(sender, translatable(IMAGE_MAP_REFRESHED).color(NamedTextColor.GREEN));
-                                        } catch (Throwable e) {
-                                            urlImageMap.setUrl(oldUrl);
-                                            sendMessage(sender, translatable(UNABLE_TO_LOAD_MAP).color(NamedTextColor.RED));
-                                            e.printStackTrace();
-                                        }
-                                    } else {
-                                        sendMessage(sender, translatable(UNABLE_TO_CHANGE_IMAGE_TYPE).color(NamedTextColor.RED));
+                                    }
+                                    if (ditheringType != null) {
+                                        urlImageMap.setDitheringType(ditheringType);
+                                    }
+                                    try {
+                                        imageMap.update();
+                                        sendMessage(sender, translatable(IMAGE_MAP_REFRESHED).color(NamedTextColor.GREEN));
+                                    } catch (Throwable e) {
+                                        urlImageMap.setUrl(oldUrl);
+                                        sendMessage(sender, translatable(UNABLE_TO_LOAD_MAP).color(NamedTextColor.RED));
+                                        e.printStackTrace();
                                     }
                                 } else {
                                     if (ditheringType != null) {
